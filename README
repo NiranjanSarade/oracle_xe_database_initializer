@@ -1,0 +1,50 @@
+The 'database_initializer.rb' ruby script can be used to set up database objects on your local Oracle XE database(http://www.oracle.com/technetwork/database/express-edition/downloads/index.html).
+This is very useful when you want to set up Oracle XE database on your local machine for your development as well as test environment database.
+With this utility, you are not required to go to Oracle XE admin panel (e.g. http://localhost:8080/apex) to perform various db tasks. 
+We assume that the Oracle XE database admin username/password is set to "system/system".
+
+You can create custom rake tasks to invoke the methods to set up your schema and db objects.
+The methods written in the class in effect execute sql files (with valid sql statements) to create following database objects :-
+- create/drop schema
+- tables
+- views
+- materialized views
+- mv logs
+- grants
+- synonyms
+- database link
+- procedure
+- sequence
+- trigger
+- importing database .dmp file
+- set up db charset to AL32UTF8
+
+----
+Your database.yml file may look like :-
+test:
+  adapter: oracle_enhanced
+  database: XE
+  username: myuser
+  password: myuser
+
+----  
+The methods are self explanatory. We can check whether particular schema or objects exists in the database or not, get and set db charset, etc.
+
+The script requires that your .sql files (e.g.change_db_charset.sql,myuser_xe_setup_create_schema.sql,myuser_xe_setup_DROP_schema.sql) reside
+in your {RAILS_ROOT}/db/oracle_xe_setup/ folder.
+
+If you already have database .dmp files from some other database and want to import into your own XE database schema, then you can use :-
+task :import_data_into_local_myuser_schema => :environment do
+    DatabaseInitializer.import_data_file "myuserdb.dmp", "system", "system", "myuser", true
+end
+
+Create schema :-
+task :setup_local_myuser_schema => :environment do
+    DatabaseInitializer.setup_local_oracle_schema "change_db_charset", "myuser_xe_setup_create_schema"
+end
+
+Drop schema :-
+task :drop_local_myuser_schema => :environment do
+    DatabaseInitializer.drop_local_oracle_schema "myuser_xe_setup_DROP_schema"
+end
+
